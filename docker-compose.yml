@@ -24,7 +24,7 @@ services:
     build: ./nginx
     restart: always
     ports:
-      - "80:80"
+      - "9000:80"
     volumes:
       - static:/static
       - media:/media
