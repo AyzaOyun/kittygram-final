@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   backend:
+    image: ayzaoyun/kittygram_backend:latest
     build: ./backend
     restart: always
     env_file: .env
@@ -12,12 +13,14 @@ services:
       - postgres
 
   frontend:
+    image: ayzaoyun/kittygram_frontend:latest
     build: ./frontend
     restart: always
     volumes:
       - static:/app/static
 
   gateway:
+    image: ayzaoyun/kittygram_gateway:latest
     build: ./nginx
     restart: always
     ports:
