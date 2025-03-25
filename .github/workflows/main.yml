@@ -1,8 +1,9 @@
-name: Deploy Kittygram
+name: Main Kittygram workflow
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   tests:
@@ -17,6 +18,7 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python
@@ -49,9 +51,15 @@ jobs:
       run: |
         cd backend/
         python manage.py migrate
-        python manage.py test -v 2
+        python manage.py test
     
-    - name: Pytest
+    - name: Test frontend
+      run: |
+        cd frontend/
+        npm ci
+        npm run test
+    
+    - name: Test backend
       env:
         POSTGRES_USER: kittygram_user
         POSTGRES_PASSWORD: kittygram_password
@@ -62,7 +70,7 @@ jobs:
         DEBUG: True
         ALLOWED_HOSTS: localhost,127.0.0.1
       run: |
-        pytest -v
+        pytest
 
   build_and_push_to_docker_hub:
     name: Push Docker image to DockerHub
@@ -78,7 +86,8 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Push to DockerHub
+      
+      - name: Push backend to DockerHub
         uses: docker/build-push-action@v4
         with:
           context: ./backend/
