@@ -96,6 +96,3 @@ jobs:
             sudo docker compose down
             sudo docker compose pull
             sudo docker compose up -d
-            sleep 10
-            sudo docker compose exec backend python manage.py migrate
-            sudo docker compose exec backend python manage.py collectstatic --noinput
