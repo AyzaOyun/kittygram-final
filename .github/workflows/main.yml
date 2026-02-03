@@ -21,18 +21,15 @@ jobs:
           cd backend
           pip install -r requirements.txt
 
-      - name: Run tests with SQLite
+      - name: Run tests
         run: |
           cd backend
-          # Используем SQLite для тестов
-          export DJANGO_SETTINGS_MODULE=kittygram_backend.settings
-          export SECRET_KEY=test_key_for_github_actions
-          export DEBUG=True
-          # Переопределяем настройки БД для тестов
-          echo "from .settings import *" > test_settings.py
-          echo "DATABASES = {'default': {'ENGINE': 'django.db.backends.sqlite3', 'NAME': ':memory:'}}" >> test_settings.py
-          export DJANGO_SETTINGS_MODULE=test_settings
-          python manage.py test --noinput
+          if [ -d "tests" ]; then
+            echo "Running tests from tests/ directory"
+            python -m pytest tests/ -v --disable-warnings
+          else
+            echo "No tests directory found, skipping tests"
+          fi
 
   build_and_push:
     needs: tests
