@@ -81,7 +81,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/kittygram
-            # создаем .env
             cat > .env << EOF
             DB_ENGINE=${{ secrets.DB_ENGINE }}
             DB_NAME=${{ secrets.DB_NAME }}
@@ -95,7 +94,7 @@ jobs:
             sudo docker compose down
             sudo docker compose pull
             sudo docker compose up -d
-            sleep 10
+            sleep 15
             sudo docker compose exec -T backend python manage.py migrate
             sudo docker compose exec -T backend python manage.py collectstatic --no-input
 
@@ -106,7 +105,7 @@ jobs:
       - name: тесты после деплоя
         run: |
           sleep 30
-          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }})
+          status_code=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.SSH_HOST }}:9000)
           if [ "$status_code" -eq 200 ] || [ "$status_code" -eq 301 ] || [ "$status_code" -eq 302 ]; then
             echo "приложение запущено (HTTP $status_code)"
           else
@@ -124,10 +123,10 @@ jobs:
           to: ${{ secrets.TELEGRAM_TO }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
-            Kittygram готов!
+            kittygram обновлен
             
-            котэсайт:
-            http://${{ secrets.SSH_HOST }}
+            проект доступен по адресу:
+            http://${{ secrets.SSH_HOST }}:9000
             
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
