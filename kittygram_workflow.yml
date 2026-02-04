@@ -23,7 +23,6 @@ jobs:
 
       - name: запустить тесты
         run: |
-          cd backend
           python -m pytest tests/ -v --disable-warnings
 
       - name: проверить код flake8
@@ -82,6 +81,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/kittygram
+            # создаем .env
             cat > .env << EOF
             DB_ENGINE=${{ secrets.DB_ENGINE }}
             DB_NAME=${{ secrets.DB_NAME }}
@@ -126,9 +126,10 @@ jobs:
           message: |
             Kittygram готов!
             
-            Котэсайт доступен по адресу:
+            котэсайт:
             http://${{ secrets.SSH_HOST }}
             
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
             автор: ${{ github.actor }}
+            
