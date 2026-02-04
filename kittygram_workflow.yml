@@ -113,7 +113,7 @@ jobs:
     steps:
       - name: тесты после деплоя
         run: |
-          curl -f http://${{ secrets.SSH_HOST }}
+          curl -f http://${{ secrets.SSH_HOST }}:9000
 
   telegram-notify:
     needs: auto_tests
@@ -127,7 +127,7 @@ jobs:
           message: |
             kittygram обновлен
             
-            котэсайт: http://${{ secrets.SSH_HOST }}
+            котэсайт: http://${{ secrets.SSH_HOST }}:9000
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
             
