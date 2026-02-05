@@ -14,6 +14,11 @@ jobs:
       - name: получить код
         uses: actions/checkout@v3
 
+      - name: установить системные зависимости
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libjpeg-dev zlib1g-dev libpq-dev
+
       - name: поставить python
         uses: actions/setup-python@v4
         with:
@@ -22,6 +27,7 @@ jobs:
       - name: поставить зависимости
         run: |
           cd backend
+          pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: проверить код
@@ -51,6 +57,11 @@ jobs:
     steps:
       - name: получить код
         uses: actions/checkout@v3
+
+      - name: установить системные зависимости
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libjpeg-dev zlib1g-dev
 
       - name: настроить docker buildx
         uses: docker/setup-buildx-action@v2
@@ -107,6 +118,53 @@ jobs:
             CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }}
             PAGE_SIZE=${{ secrets.PAGE_SIZE }}
             EOF
+            
+            # Обновить docker-compose файл
+            cat > docker-compose.production.yml << 'DOCKER_COMPOSE_EOF'
+            version: '3.8'
+            
+            services:
+              postgres:
+                image: postgres:13
+                env_file:
+                  - .env
+                volumes:
+                  - pg_data:/var/lib/postgresql/data
+            
+              backend:
+                image: ${{ secrets.DOCKER_USERNAME }}/kittygram_backend:latest
+                env_file:
+                  - .env
+                volumes:
+                  - static_volume:/app/collected_static
+                  - media_volume:/app/media
+                command: >
+                  sh -c "python manage.py migrate &&
+                         python manage.py collectstatic --noinput &&
+                         gunicorn kittygram_backend.wsgi:application --bind 0:8000"
+            
+              frontend:
+                image: ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
+                volumes:
+                  - static_volume:/app/collected_static
+            
+              gateway:
+                image: ${{ secrets.DOCKER_USERNAME }}/kittygram_gateway:latest
+                ports:
+                  - "9000:80"
+                volumes:
+                  - static_volume:/static
+                  - media_volume:/media
+                depends_on:
+                  - backend
+                  - frontend
+            
+            volumes:
+              pg_data:
+              static_volume:
+              media_volume:
+            DOCKER_COMPOSE_EOF
+            
             sudo docker compose down
             sudo docker compose pull
             sudo docker compose up -d
@@ -137,3 +195,4 @@ jobs:
             котэсайт: http://${{ secrets.SSH_HOST }}:9000
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
+            
