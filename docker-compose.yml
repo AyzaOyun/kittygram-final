@@ -12,7 +12,7 @@ services:
       retries: 5
 
   backend:
-    image: ayzaoyun/kittygram_backend:latest
+    build: ./backend
     env_file:
       - .env
     volumes:
@@ -27,12 +27,12 @@ services:
              gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:8000"
 
   frontend:
-    image: ayzaoyun/kittygram_frontend:latest
+    build: ./frontend
     volumes:
       - frontend_static:/app/build
 
   gateway:
-    image: nginx:1.21-alpine
+    build: ./nginx
     ports:
       - "9000:80"
     volumes:
@@ -49,4 +49,3 @@ volumes:
   backend_static:
   frontend_static:
   media_volume:
-  
