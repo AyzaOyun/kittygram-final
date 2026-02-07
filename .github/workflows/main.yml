@@ -101,7 +101,7 @@ jobs:
           script: |
             cd ~/kittygram
             
-            # Создаем .env (БЕЗ DB_NAME!)
+            # Создаем .env
             cat > .env << EOF
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
@@ -110,18 +110,32 @@ jobs:
             DB_HOST=${{ secrets.DB_HOST }}
             DB_PORT=${{ secrets.DB_PORT }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
-            
             ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
             CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }}
             EOF
             
-            # Создаем ПРАВИЛЬНЫЙ nginx конфиг
+            # Создаем nginx конфиг
             mkdir -p nginx_config
             cat > nginx_config/default.conf << 'NGINX_EOF'
             server {
                 listen 80;
                 server_name _;
                 client_max_body_size 20M;
+                
+                # Статика Django
+                location /static/admin/ {
+                    alias /static/backend/admin/;
+                }
+                
+                location /static/rest_framework/ {
+                    alias /static/backend/rest_framework/;
+                }
+                
+                # Статика React
+                location /static/ {
+                    alias /static/frontend/;
+                    try_files $uri =404;
+                }
                 
                 # API запросы
                 location /api/ {
@@ -140,15 +154,9 @@ jobs:
                     alias /media/;
                 }
                 
-                # Статика Django
-                location /static/ {
-                    alias /static/backend/;
-                    try_files $uri =404;
-                }
-                
                 # Frontend SPA
                 location / {
-                    alias /static/frontend/;
+                    root /static/frontend/..;
                     try_files $uri $uri/ /index.html;
                 }
             }
@@ -181,13 +189,13 @@ jobs:
                     condition: service_healthy
                 command: >
                   sh -c "python manage.py migrate &&
-                         python manage.py collectstatic --noinput &&
-                         gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:8000"
+                        python manage.py collectstatic --noinput &&
+                        gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:8000"
               
               frontend:
                 image: ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
                 volumes:
-                  - frontend_static:/app/build
+                  - frontend_static:/app/build/static
               
               gateway:
                 image: nginx:1.21-alpine
@@ -212,6 +220,12 @@ jobs:
             sudo docker compose down
             sudo docker compose pull
             sudo docker compose up -d
+            
+            sleep 10
+            
+            # Проверяем
+            echo "Проверка статики React:"
+            curl -I http://localhost:9000/static/js/main.070e9cef.js 2>/dev/null | head -1 || echo "Ошибка проверки"
 
   auto_tests:
     needs: deploy
@@ -236,4 +250,3 @@ jobs:
             котэсайт: http://${{ secrets.SSH_HOST }}:9000
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
-            

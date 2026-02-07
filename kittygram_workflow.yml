@@ -101,19 +101,16 @@ jobs:
           script: |
             cd ~/kittygram
             
-            # Создаем .env файл
+            # Создаем .env
             cat > .env << EOF
             POSTGRES_DB=${{ secrets.POSTGRES_DB }}
             POSTGRES_USER=${{ secrets.POSTGRES_USER }}
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             DB_ENGINE=${{ secrets.DB_ENGINE }}
-            DB_NAME=${{ secrets.DB_NAME }}
             DB_HOST=${{ secrets.DB_HOST }}
             DB_PORT=${{ secrets.DB_PORT }}
             SECRET_KEY=${{ secrets.SECRET_KEY }}
-            DEBUG=${{ secrets.DEBUG }}
             ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }}
-            PAGE_SIZE=${{ secrets.PAGE_SIZE }}
             CSRF_TRUSTED_ORIGINS=${{ secrets.CSRF_TRUSTED_ORIGINS }}
             EOF
             
@@ -125,39 +122,48 @@ jobs:
                 server_name _;
                 client_max_body_size 20M;
                 
-                location /api/ {
-                    proxy_set_header Host $http_host;
-                    proxy_pass http://backend:8000/api/;
-                }
-                
-                location /admin/ {
-                    proxy_set_header Host $http_host;
-                    proxy_pass http://backend:8000/admin/;
-                }
-                
-                location /media/ {
-                    alias /media/;
-                }
-                
-                location /static/backend/ {
-                    alias /static/backend/;
+                # Статика Django
+                location /static/admin/ {
+                    alias /static/backend/admin/;
                 }
                 
                 location /static/rest_framework/ {
                     alias /static/backend/rest_framework/;
                 }
                 
-                location / {
+                # Статика React
+                location /static/ {
                     alias /static/frontend/;
+                    try_files $uri =404;
+                }
+                
+                # API запросы
+                location /api/ {
+                    proxy_set_header Host $http_host;
+                    proxy_pass http://backend:8000/api/;
+                }
+                
+                # Админка Django
+                location /admin/ {
+                    proxy_set_header Host $http_host;
+                    proxy_pass http://backend:8000/admin/;
+                }
+                
+                # Медиа файлы
+                location /media/ {
+                    alias /media/;
+                }
+                
+                # Frontend SPA
+                location / {
+                    root /static/frontend/..;
                     try_files $uri $uri/ /index.html;
                 }
             }
             NGINX_EOF
             
-            # Создаем docker-compose.yml (используем простой nginx образ)
-            cat > docker-compose.yml << 'EOF'
-            version: '3.8'
-            
+            # Создаем docker-compose.yml
+            cat > docker-compose.yml << 'DOCKER_EOF'
             services:
               postgres:
                 image: postgres:13
@@ -183,13 +189,13 @@ jobs:
                     condition: service_healthy
                 command: >
                   sh -c "python manage.py migrate &&
-                         python manage.py collectstatic --noinput &&
-                         gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:8000"
+                        python manage.py collectstatic --noinput &&
+                        gunicorn kittygram_backend.wsgi:application --bind 0.0.0.0:8000"
               
               frontend:
                 image: ${{ secrets.DOCKER_USERNAME }}/kittygram_frontend:latest
                 volumes:
-                  - frontend_static:/app/build
+                  - frontend_static:/app/build/static
               
               gateway:
                 image: nginx:1.21-alpine
@@ -209,16 +215,17 @@ jobs:
               backend_static:
               frontend_static:
               media_volume:
-            EOF
+            DOCKER_EOF
             
             sudo docker compose down
             sudo docker compose pull
             sudo docker compose up -d
+            
             sleep 10
             
-            # Выполняем миграции и сбор статики (на всякий случай)
-            sudo docker compose exec backend python manage.py migrate --noinput
-            sudo docker compose exec backend python manage.py collectstatic --noinput
+            # Проверяем
+            echo "Проверка статики React:"
+            curl -I http://localhost:9000/static/js/main.070e9cef.js 2>/dev/null | head -1 || echo "Ошибка проверки"
 
   auto_tests:
     needs: deploy
@@ -243,4 +250,3 @@ jobs:
             котэсайт: http://${{ secrets.SSH_HOST }}:9000
             репозиторий: ${{ github.repository }}
             ветка: ${{ github.ref_name }}
-            
