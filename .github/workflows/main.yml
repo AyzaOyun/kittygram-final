@@ -131,9 +131,9 @@ jobs:
                     alias /static/backend/rest_framework/;
                 }
                 
-                # Статика React - ВАЖНО: она в /static/frontend/static/
-                location ~ ^/static/(js|css|media)/ {
-                    alias /static/frontend/static/$1/;
+                # Статика React
+                location /static/frontend/ {
+                    alias /static/frontend/;
                     try_files $uri =404;
                 }
                 
@@ -149,14 +149,18 @@ jobs:
                     proxy_pass http://backend:8000/admin/;
                 }
                 
-                # Медиа файлы (загруженные пользователями)
+                # Медиа файлы
                 location /media/ {
                     alias /media/;
                 }
                 
-                # Frontend SPA
+                # Frontend SPA - redirect / to /static/frontend/
+                location = / {
+                    return 302 /static/frontend/;
+                }
+                
                 location / {
-                    alias /static/frontend/;
+                    root /static/frontend;
                     try_files $uri $uri/ /index.html;
                 }
             }

@@ -29,7 +29,7 @@ services:
   frontend:
     image: ayzaoyun/kittygram_frontend:latest
     volumes:
-      - frontend_static:/app/build/static
+      - frontend_static:/app/build
 
   gateway:
     image: nginx:1.21-alpine

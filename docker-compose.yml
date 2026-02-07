@@ -29,7 +29,7 @@ services:
   frontend:
     build: ./frontend
     volumes:
-      - frontend_static:/app/build/static
+      - frontend_static:/app/build
 
   gateway:
     build: ./nginx
@@ -49,4 +49,3 @@ volumes:
   backend_static:
   frontend_static:
   media_volume:
-  
