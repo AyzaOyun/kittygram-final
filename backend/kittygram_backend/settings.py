@@ -68,16 +68,20 @@ WSGI_APPLICATION = 'kittygram_backend.wsgi.application'
 #         'PORT': os.getenv('DB_PORT'),
 #     }
 # }
+ 
+
 DATABASES = {
-  'default': {
-    'ENGINE': 'django.db.backends.postgresql',
-    'NAME': 'kittygram',       # Имя вашей базы данных
-    'USER': 'kittygram_user',      # Имя пользователя базы данных
-    'PASSWORD': 'kittygram_password',  # Пароль пользователя базы данных
-    'HOST': 'localhost',          # Адрес хоста, на котором запущена база данных
-    'PORT': '5432',               # Порт подключения к PostgreSQL (стандартный - 5432)
-  }
-}   
+    'default': {
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
+}
+
+
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
