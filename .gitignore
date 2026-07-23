@@ -44,3 +44,5 @@ Thumbs.db
 
 # Logs
 *.log
+infra/terraform.tfvars
+infra/authorized_key.json

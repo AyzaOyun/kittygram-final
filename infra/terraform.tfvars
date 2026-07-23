@@ -1,4 +1,0 @@
-cloud_id  = "b1g263h56i705p84lfra"
-folder_id = "b1g099boersiou1bukuh"
-zone      = "ru-central1-a"
-ssh_key   = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDn5MRrd+xELnAXJWqiDSWdKgajMbqGzuWVkbsx1CT6qPJjYkghWwolQIFUEmNzsgb9GiOkVNeW36ygd9B41WXC9TCu1qkq4V8KDfbFVYPFUUwdAn6+F217Ujhw7aLd+pj11yB71oqr7hGs+K+ptreWD20BiDJIXoMnQ50+n52it3F4HRYlJO/WEGc6okmGuizryvtZ3lH5MN4YkEoHPuIGKuILGd2me4Ny/WSnWuHJaq7cTAhBoee8FT1hfXke7goz1/FpVN5VALkbd3P3R6udgEdOrmByUj/XZtGloIe+7UVhE3QLv10m6xBwb3GM4RnxadC1FSwp6J/zftfR2gkl ayza@BOOK-6K92PJC4V1"
