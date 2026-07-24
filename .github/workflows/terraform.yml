@@ -15,6 +15,12 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    env:
+      ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
+      SECRET_KEY: ${{ secrets.S3_SECRET_KEY }}
+      TF_VAR_cloud_id: ${{ secrets.YC_CLOUD_ID }}
+      TF_VAR_folder_id: ${{ secrets.YC_FOLDER_ID }}
+      TF_VAR_ssh_key: ${{ secrets.SSH_PUBLIC_KEY }}
 
     steps:
     - name: Checkout code
@@ -32,31 +38,19 @@ jobs:
 
     - name: Initialize Terraform
       working-directory: ./infra
-      run: terraform init
-      env:
-        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: terraform init -backend-config="access_key=$ACCESS_KEY" -backend-config="secret_key=$SECRET_KEY"
 
     - name: Terraform Plan
       working-directory: ./infra
       if: ${{ github.event.inputs.action == 'plan' }}
       run: terraform plan
-      env:
-        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
     - name: Terraform Apply
       working-directory: ./infra
       if: ${{ github.event.inputs.action == 'apply' }}
       run: terraform apply -auto-approve
-      env:
-        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
     - name: Terraform Destroy
       working-directory: ./infra
       if: ${{ github.event.inputs.action == 'destroy' }}
       run: terraform destroy -auto-approve
-      env:
-        ACCESS_KEY: ${{ secrets.ACCESS_KEY }}
-        SECRET_KEY: ${{ secrets.SECRET_KEY }}

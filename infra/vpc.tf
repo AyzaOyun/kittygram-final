@@ -29,8 +29,8 @@ resource "yandex_vpc_security_group" "infra_sg" {
 
   ingress {
     protocol    = "TCP"
-    port        = 80
+    port        = 9000
     v4_cidr_blocks = ["0.0.0.0/0"]
-    description = "Allow HTTP"
+    description = "Allow gateway"
   }
 }
