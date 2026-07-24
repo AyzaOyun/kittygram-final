@@ -47,3 +47,8 @@ Thumbs.db
 infra/terraform.tfvars
 infra/authorized_key.json
 backend/venv/
+infra/.terraform/
+infra/.terraform.lock.hcl
+infra/terraform-provider-yandex.zip
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
